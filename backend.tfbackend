@@ -1,8 +1,8 @@
 # Backend configuration for the sandbox environment.
 # The S3 bucket must have AES256 server-side encryption enabled (encrypt = true).
-bucket       = "xprende-labs"
+bucket       = "lab"
 key          = "lab/terraform.tfstate"
 region       = "us-west-1"
-profile      = "xprende-labs"
+profile      = "lab"
 encrypt      = true
 use_lockfile = true
