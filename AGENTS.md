@@ -37,6 +37,7 @@ terraform {
 - **Enforce State Encryption:** Ensure the remote S3 bucket parameter used in initialization specifies or relies on AES256 server-side encryption.
 - **Use Partial Backend Initialization:** Keep the `backend "s3" {}` block empty of configuration data. Define parameters inside an environment-specific file named `backend.tfbackend` (e.g., `bucket = "my-company-tfstate"`). And
 configure backend with environment-aware.
+- **Security Group Rules:** Do not use the inline `ingress` or `egress` arguments in `aws_security_group` resources. Define each ingress and egress rule using the dedicated `aws_vpc_security_group_ingress_rule` and `aws_vpc_security_group_egress_rule` resources, respectively. Use **one CIDR block per rule** and configure meaningful descriptions. This ensures rules have independent lifecycle management, supports rule-level descriptions and tags where supported, and avoids conflicts associated with managing rules both inline and through standalone resources. Never mix inline security group rules with standalone rule resources for the same security group. Prefer the most restrictive source and destination CIDRs necessary to satisfy the requirement. And keep the aws_security_group resource responsible for the security group itself, and the dedicated resources responsible for its rules.
 
 
 ### 🔴 NEVER

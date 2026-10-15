@@ -55,11 +55,16 @@ locals {
 
   azs = slice(data.aws_availability_zones.available.names, 0, 3)
 
+  # Subnet CIDR calculations
+  public_subnet_cidrs = [
+    cidrsubnet(var.vpc_cidr, var.subnet_newbits, 3)
+  ]
+
   private_subnet_cidrs = [
     for idx in range(3) : cidrsubnet(var.vpc_cidr, var.subnet_newbits, idx)
   ]
 }
-
+//networking
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "~> 6.7.3"
@@ -68,15 +73,17 @@ module "vpc" {
   cidr = var.vpc_cidr
 
   azs             = local.azs
+  public_subnets  = local.public_subnet_cidrs
   private_subnets = local.private_subnet_cidrs
 
   enable_dns_support   = true
   enable_dns_hostnames = true
   enable_ipv6          = false
 
-  create_igw                       = false
-  enable_nat_gateway               = false
-  create_private_nat_gateway_route = false
+  create_igw                       = true
+  enable_nat_gateway               = true
+  single_nat_gateway               = var.single_nat_gateway
+  create_private_nat_gateway_route = true
   map_public_ip_on_launch          = false
 
   manage_default_security_group  = true
@@ -92,5 +99,26 @@ module "vpc" {
     Tier = "private"
   }
 
+  public_subnet_tags = {
+    Tier = "public"
+  }
+
   tags = local.common_tags
+}
+
+//compute
+module "compute" {
+  source = "./modules/compute"
+
+  project_name        = var.project_name
+  environment         = local.environment
+  vpc_id              = module.vpc.vpc_id
+  subnet_ids          = module.vpc.private_subnets
+  ami_id              = var.ami_id
+  instance_count      = var.instance_count
+  control_plane_count = var.control_plane_count
+  instance_type       = var.instance_type
+  root_volume_size    = var.root_volume_size
+  pod_network_cidr    = var.pod_network_cidr
+  tags                = local.common_tags
 }

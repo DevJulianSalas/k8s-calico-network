@@ -10,3 +10,4 @@ override.tf.json
 *_override.tf.json
 *.tfvars
 tfplan
+image/manifest.json
